@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TESSÉ - Modern Online Product Catalog</title>
+  <meta name="description" content="A modern, minimalist static online shopping catalog and order inquiry platform for independent businesses, built with HTML5, CSS3, and Vanilla JavaScript.">
+  <meta property="og:title" content="TESSÉ - Modern Online Product Catalog">
+  <meta property="og:description" content="A modern, minimalist static online shopping catalog and order inquiry platform for independent businesses, built with HTML5, CSS3, and Vanilla JavaScript.">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+
+  <!-- Core Architectural Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Accessibility Skip Link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- =====================================================================
+       HEADER & NAVIGATION
+       ===================================================================== -->
+  <header class="site-header" id="site-header">
+    <!-- Announcement Bar -->
+    <!-- <aside class="announcement-bar" id="header-announcement">
+      Direct artisan orders via Telegram, Phone, Email &amp; In-Store Studio Pickup
+    </aside> -->
+
+    <div class="container">
+      <div class="header-main">
+        <!-- Brand Identity -->
+        <a href="#home" class="brand-logo-link" aria-label="FANA Home">
+          <span class="brand-name brand-name-text">FANA</span>
+          <span class="brand-tagline brand-tagline-text">ATELIER &amp; GOODS</span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="desktop-nav" aria-label="Main Navigation">
+          <a href="#home" class="nav-link is-active">Home</a>
+          <a href="#catalog" class="nav-link">Shop</a>
+          <a href="#categories-section" class="nav-link">Categories</a>
+          <a href="#new-arrivals" class="nav-link">New Arrivals</a>
+          <a href="#about" class="nav-link">About</a>
+          <a href="#contact" class="nav-link">Contact</a>
+        </nav>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <!-- Live Search Input -->
+          <div class="header-search-wrap">
+            <span class="search-input-icon">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </span>
+            <input 
+              type="text" 
+              id="header-live-search" 
+              class="header-search-input live-search-input" 
+              placeholder="Search catalog..." 
+              aria-label="Search catalog products"
+            >
+            <button type="button" class="search-clear-btn" aria-label="Clear search input">&times;</button>
+          </div>
+
+          <!-- Order List (Bag) Button -->
+          <button type="button" class="header-bag-btn trigger-order-drawer" id="btn-open-bag" onclick="openOrderDrawer()" aria-label="Open Order List">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span class="header-bag-text">Order List</span>
+            <span class="order-badge-count" id="header-order-count">0</span>
+          </button>
+
+          <!-- Mobile Hamburger Toggle -->
+          <button type="button" class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Open mobile navigation menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Drawer -->
+  <div class="drawer-backdrop" id="mobile-nav-overlay"></div>
+  <aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-label="Mobile Navigation Menu" aria-hidden="true">
+    <div class="mobile-drawer-header">
+      <div class="brand-logo-link">
+        <span class="brand-name brand-name-text">FAFA</span>
+        <span class="brand-tagline brand-tagline-text">ATELIER &amp; GOODS</span>
+      </div>
+      <button type="button" class="drawer-close-btn" id="mobile-nav-close" aria-label="Close mobile menu">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <nav class="mobile-nav-links">
+      <a href="#home" class="mobile-nav-link">Home</a>
+      <a href="#catalog" class="mobile-nav-link">Shop</a>
+      <a href="#categories-section" class="mobile-nav-link">Categories</a>
+      <a href="#new-arrivals" class="mobile-nav-link">New Arrivals</a>
+      <a href="#about" class="mobile-nav-link">About</a>
+      <a href="#contact" class="mobile-nav-link">Contact</a>
+      <button type="button" class="mobile-nav-order-btn trigger-order-drawer" id="mobile-drawer-order-btn" onclick="if(typeof closeMobileNav==='function')closeMobileNav(); if(typeof openOrderDrawer==='function')openOrderDrawer();" aria-label="Open your order list">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        <span>View Order List</span>
+        <span class="order-badge-count mobile-order-badge" id="mobile-order-count">0</span>
+      </button>
+    </nav>
+
+    <div class="mobile-drawer-footer">
+      <p>Direct Inquiries &amp; Orders:</p>
+      <p><strong class="brand-name-text">FAFA</strong> Studio</p>
+    </div>
+  </aside>
+
+  <!-- =====================================================================
+       MAIN CONTENT
+       ===================================================================== -->
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+      <div class="container">
+        <div class="hero-inner">
+          <span class="hero-kicker brand-store-name">FAFA</span>
+          <h1 class="hero-title" id="hero-heading">Simple. Modern. Yours.</h1>
+          <p class="hero-desc" id="hero-subheading">
+            Discover carefully selected products made for everyday life. Thoughtfully crafted apparel, durable leather goods, and refined everyday objects.
+          </p>
+          <div class="hero-actions">
+            <a href="#catalog" class="btn-primary" id="hero-cta-btn">Shop Now</a>
+            <a href="#categories-section" class="btn-secondary" id="hero-secondary-cta-btn">Explore Categories</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories Overview -->
+    <section class="section-block bg-surface" id="categories-section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">CURATED DISCIPLINES</span>
+            <h2 class="section-title">Shop by Category</h2>
+          </div>
+          <a href="#catalog" class="section-view-all-link">Browse All Items &rarr;</a>
+        </div>
+        <div class="categories-grid" id="categories-overview-grid">
+          <!-- Dynamically populated by categories.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="section-block" id="featured">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">EDITORIAL SELECTION</span>
+            <h2 class="section-title">Featured Pieces</h2>
+          </div>
+          <a href="#catalog" class="section-view-all-link">View Full Catalog &rarr;</a>
+        </div>
+        <div class="products-grid" id="featured-products-grid">
+          <!-- Dynamically populated by products-ui.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section class="section-block bg-surface" id="new-arrivals">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">JUST ARRIVED</span>
+            <h2 class="section-title">New Arrivals</h2>
+          </div>
+          <a href="#catalog" class="section-view-all-link">View All Items &rarr;</a>
+        </div>
+        <div class="products-grid" id="new-arrivals-products-grid">
+          <!-- Dynamically populated by products-ui.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Complete Product Catalog & Multi-Faceted Filters -->
+    <section class="catalog-section" id="catalog">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">ALL PRODUCTS</span>
+            <h2 class="section-title">Complete Catalog</h2>
+          </div>
+          <span class="catalog-results-count" id="catalog-results-summary">Showing all products</span>
+        </div>
+
+        <!-- Catalog Toolbar: Category Pills -->
+        <div class="category-filter-pills" id="category-filter-pills" role="tablist" aria-label="Product Categories">
+          <!-- Injected by filters.js -->
+        </div>
+
+        <!-- Filter & Sorting Bar -->
+        <div class="catalog-filter-bar">
+          <div class="filter-bar-left">
+            <!-- Inline Search Filter -->
+            <div class="filter-inline-search">
+              <input 
+                type="text" 
+                id="catalog-inline-search" 
+                class="live-search-input" 
+                placeholder="Filter catalog..." 
+                aria-label="Filter products in catalog"
+              >
+            </div>
+
+            <!-- In-Stock Filter -->
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-in-stock-checkbox">
+              <span>In Stock Only</span>
+            </label>
+
+            <!-- On-Sale / Discount Filter -->
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-on-sale-checkbox">
+              <span>On Sale</span>
+            </label>
+          </div>
+
+          <div class="filter-bar-right">
+            <!-- Brand Filter -->
+            <label for="catalog-brand-filter" class="chips-label">Brand:</label>
+            <select id="catalog-brand-filter" class="catalog-sort-select" aria-label="Filter products by brand">
+              <option value="all">All Brands</option>
+            </select>
+
+            <!-- Sorting Dropdown -->
+            <label for="catalog-sort-dropdown" class="chips-label">Sort By:</label>
+            <select id="catalog-sort-dropdown" class="catalog-sort-select" aria-label="Sort product catalog">
+              <option value="featured">Featured First</option>
+              <option value="price-asc">Price: Low to High</option>
+              <option value="price-desc">Price: High to Low</option>
+              <option value="name-asc">Alphabetical: A to Z</option>
+              <option value="name-desc">Alphabetical: Z to A</option>
+              <option value="newest">Newest Arrivals</option>
+            </select>
+
+            <!-- Clear All Filters -->
+            <button type="button" class="catalog-clear-btn" id="btn-clear-all-filters">
+              Reset Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Secondary Attribute Filters: Color & Size Chips -->
+        <div class="catalog-chips-row">
+          <span class="chips-label">Filter Color:</span>
+          <div class="chips-container" id="filter-color-chips">
+            <!-- Dynamically populated by filters.js -->
+          </div>
+        </div>
+
+        <div class="catalog-chips-row">
+          <span class="chips-label">Filter Size:</span>
+          <div class="chips-container" id="filter-size-chips">
+            <!-- Dynamically populated by filters.js -->
+          </div>
+        </div>
+
+        <!-- Catalog Product Grid -->
+        <div class="products-grid" id="catalog-products-grid">
+          <!-- Dynamically populated by filters.js -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="catalog-empty-state" id="catalog-empty-state">
+          <div class="empty-state-icon">
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+          </div>
+          <h3 class="empty-state-title">No products match your criteria</h3>
+          <p class="empty-state-desc">Try clearing your filters or searching for another keyword.</p>
+          <button type="button" class="btn-primary" id="btn-reset-filters-empty">Show All Products</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Popular Items Section -->
+    <section class="section-block bg-surface" id="popular-section">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">MOST LOVED</span>
+            <h2 class="section-title">Popular Items</h2>
+          </div>
+          <a href="#catalog" class="section-view-all-link">Browse Full Range &rarr;</a>
+        </div>
+        <div class="products-grid" id="popular-products-grid">
+          <!-- Dynamically populated by products-ui.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Editorial Craftsmanship Banner -->
+    <section class="editorial-banner-section">
+      <div class="container">
+        <div class="editorial-banner-grid">
+          <div class="editorial-banner-content">
+            <span class="hero-kicker" style="color: #bbb;">OUR PHILOSOPHY</span>
+            <h2>Small-Batch Quality. Direct Relationship.</h2>
+            <p>
+              We operate without commercial intermediaries. Every garment, accessory, and home object in our catalog is selected or produced in limited small batches. When you purchase from <strong class="brand-name-text">FAFA</strong>, you communicate directly with the maker.
+            </p>
+            <a href="#contact" class="btn-secondary">Speak With Us Directly</a>
+          </div>
+          <div class="editorial-banner-visual">
+            <div class="editorial-spec-list">
+              <div class="editorial-spec-item">
+                <div class="editorial-spec-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="editorial-spec-text">
+                  <h4>Material Integrity</h4>
+                  <p>Long-staple organic cottons, vegetable-tanned leathers, and pure recycled metals.</p>
+                </div>
+              </div>
+              <div class="editorial-spec-item">
+                <div class="editorial-spec-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="editorial-spec-text">
+                  <h4>Transparent Ordering</h4>
+                  <p>Send your custom wishlist through Telegram, Phone, SMS, or Email without opaque checkout portals.</p>
+                </div>
+              </div>
+              <div class="editorial-spec-item">
+                <div class="editorial-spec-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="editorial-spec-text">
+                  <h4>Physical Studio Inspection</h4>
+                  <p>Visit our atelier to touch fabrics, test sizing, or pick up your reserved pieces in person.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+      <div class="container">
+        <div class="about-grid">
+          <div>
+            <span class="section-eyebrow">ABOUT THE BRAND</span>
+            <h2 class="about-intro-title">An independent studio dedicated to enduring form and tactile utility.</h2>
+          </div>
+          <div class="about-body-text">
+            <p>
+              Founded on the belief that everyday tools and garments should outlast seasonal trends, <strong class="brand-name-text">FAFA</strong> creates enduring products for deliberate living.
+            </p>
+            <p>
+              Rather than maintaining bloated automated warehouses, we keep a curated, high-integrity product catalog. Every inquiry is personally reviewed, packaged with care, and dispatched with pride.
+            </p>
+          </div>
+        </div>
+
+        <div class="about-pillars-grid">
+          <div class="about-pillar-card">
+            <div class="pillar-number">01</div>
+            <h3 class="pillar-title">Pure Materials</h3>
+            <p class="pillar-desc">We never cut corners with cheap synthetic fibers or disposable packaging. Each component is chosen for aging gracefully over years of wear.</p>
+          </div>
+          <div class="about-pillar-card">
+            <div class="pillar-number">02</div>
+            <h3 class="pillar-title">Direct Service</h3>
+            <p class="pillar-desc">Communicate with a real human. Ask questions about sizing, materials, or delivery times via Telegram, Phone, or direct Email.</p>
+          </div>
+          <div class="about-pillar-card">
+            <div class="pillar-number">03</div>
+            <h3 class="pillar-title">Physical Presence</h3>
+            <p class="pillar-desc">Our physical store and workshop welcomes visitors. Pick up your orders locally or come browse the physical rack.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact & Physical Shop Section -->
+    <section class="contact-section bg-surface" id="contact">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">GET IN TOUCH</span>
+            <h2 class="section-title">Contact the Studio</h2>
+          </div>
+        </div>
+
+        <div class="contact-layout-grid">
+          <!-- Left Column: Direct Communication Channels & Inquiry Form -->
+          <div>
+            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 16px;">Direct Channels</h3>
+            <!-- Dynamically populated by contact.js -->
+            <div class="contact-channels-grid" id="contact-channels-grid"></div>
+
+            <!-- Interactive General Inquiry Form -->
+            <div class="inquiry-form-card">
+              <h3>Have a Question?</h3>
+              <p>Need custom advice or sizing assistance? Send an inquiry and dispatch it through your preferred channel.</p>
+              
+              <form id="general-inquiry-form">
+                <div class="form-group">
+                  <label for="inquiry-name">Your Name</label>
+                  <input type="text" id="inquiry-name" class="form-control" placeholder="e.g. Alex Miller">
+                </div>
+                <div class="form-group">
+                  <label for="inquiry-message">Your Message</label>
+                  <textarea id="inquiry-message" rows="3" class="form-control" placeholder="Tell us what you would like to know..."></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">
+                  Compose &amp; Send Inquiry &rarr;
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Compact availability notice; there is no physical location yet. -->
+          <div id="physical-shop-details"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =====================================================================
+       FOOTER
+       ===================================================================== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top-grid">
+        <div class="footer-brand">
+          <h3 class="brand-name-text">FAFA</h3>
+          <p class="brand-tagline-text">Minimalist Goods &amp; Apparel Atelier</p>
+          <p style="margin-top: 12px; font-size: 0.8125rem;">
+            A conscious catalog of enduring garments, leather goods, and utilitarian objects.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Navigation</h4>
+          <ul class="footer-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#catalog">Full Catalog</a></li>
+            <li><a href="#featured">Featured Selection</a></li>
+            <li><a href="#new-arrivals">New Arrivals</a></li>
+            <li><a href="#about">About Our Studio</a></li>
+            <li><a href="#contact">Contact &amp; Location</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Contact &amp; Studio</h4>
+          <ul class="footer-links">
+            <li><span style="color: #777;">Ordering:</span> Direct via Telegram / Phone / Email</li>
+            <li><span style="color: #777;">Physical Shop:</span> Studio open Mon - Sat</li>
+            <li><span style="color: #777;">Location:</span> Central Design District</li>
+            <li><a href="#contact" style="text-decoration: underline;">View Full Studio Details &rarr;</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom-row">
+        <div>
+          &copy; <span id="current-year">2026</span> <span class="brand-name-text">FAFA</span> Atelier. All rights reserved. Built with pure HTML5, CSS3, &amp; Vanilla JavaScript.
+        </div>
+        <div>
+          Independent Artisan Commerce &bull; Zero external database dependencies
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =====================================================================
+       MODALS & DRAWERS
+       ===================================================================== -->
+
+  <!-- Order List Slide-out Drawer -->
+  <div class="drawer-backdrop" id="order-drawer-overlay"></div>
+  <aside class="order-drawer" id="order-drawer" aria-label="Order List Drawer">
+    <div class="order-drawer-header">
+      <h3 class="order-drawer-title">Your Order List (<span id="drawer-order-count">0</span>)</h3>
+      <button type="button" class="drawer-close-btn" id="order-drawer-close" onclick="closeOrderDrawer()" aria-label="Close order drawer">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="order-drawer-content" id="order-drawer-items-list">
+      <!-- Injected by order.js -->
+    </div>
+
+    <div class="order-drawer-footer">
+      <div class="drawer-summary-line">
+        <span>Estimated Total:</span>
+        <span id="order-drawer-total-price">$0.00</span>
+      </div>
+      <p class="drawer-summary-note">Taxes &amp; shipping finalized directly with our studio.</p>
+      
+      <div class="drawer-actions">
+        <button type="button" class="btn-drawer-checkout" id="btn-order-drawer-checkout" onclick="openOrderDispatchModal()">
+          Proceed to Order / Contact Studio &rarr;
+        </button>
+        <button type="button" class="btn-drawer-clear" id="btn-clear-order-list" onclick="clearOrderList()">
+          Clear Entire Order List
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Product Detail Modal View -->
+  <div class="modal-overlay" id="product-detail-modal" role="dialog" aria-modal="true" aria-label="Product details view">
+    <div class="modal-container">
+      <button type="button" class="modal-close-corner" id="product-detail-close" onclick="closeProductDetailModal()" aria-label="Close product view">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <div class="modal-scroll-body" id="product-detail-modal-body">
+        <!-- Rendered dynamically by product-detail.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Dispatch & Contact Channel Modal -->
+  <div class="modal-overlay" id="order-action-modal" role="dialog" aria-modal="true" aria-label="Order or Inquiry Dispatch Dialog">
+    <div class="order-modal-container">
+      <button type="button" class="modal-close-corner" id="order-modal-close" onclick="closeOrderDispatchModal()" aria-label="Close order dialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <div class="order-modal-header">
+        <div class="order-modal-badge">
+          <span class="order-modal-badge-dot"></span>
+          <span>DIRECT ARTISAN CHECKOUT</span>
+        </div>
+        <h3 class="order-modal-title" id="order-modal-title">Complete Your Order Inquiry</h3>
+        <p class="order-modal-desc">
+          No online card required. Review your items below and connect directly with our Addis Ababa studio to confirm availability and arrangement.
+        </p>
+      </div>
+
+      <!-- Itemized Order Summary Box -->
+      <div class="order-modal-summary-card" id="order-modal-summary-card">
+        <div class="order-summary-card-header">
+          <span class="order-summary-card-title">Order Items Breakdown</span>
+          <span class="order-summary-card-count" id="order-modal-items-count">0 items</span>
+        </div>
+        <div class="order-modal-items-scroll" id="order-modal-items-list">
+          <!-- Populated dynamically by order.js -->
+        </div>
+        <div class="order-summary-total-bar">
+          <span class="order-total-label">Estimated Total:</span>
+          <span class="order-total-value" id="order-modal-total-display">$0.00</span>
+        </div>
+      </div>
+
+      <!-- Optional Personalization Form -->
+      <div class="order-personalize-box">
+        <div class="order-personalize-title">Order Personalization (Optional):</div>
+        <div class="order-personalize-grid">
+          <div class="order-input-field">
+            <label for="order-customer-name">Your Full Name</label>
+            <input type="text" id="order-customer-name" placeholder="e.g. Abebe Kebede" autocomplete="name">
+          </div>
+          <div class="order-input-field">
+            <label for="order-customer-location">Delivery Area or Studio Pickup</label>
+            <input type="text" id="order-customer-location" placeholder="e.g. Bole Medhanialem or Pickup">
+          </div>
+        </div>
+      </div>
+
+      <!-- Direct Contact Channels -->
+      <div class="order-channels-title">Send Directly to Studio Via:</div>
+      <div class="order-channels-grid">
+        <!-- TELEGRAM (PRIMARY) -->
+        <button type="button" class="channel-action-btn channel-btn-telegram" id="btn-dispatch-telegram">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .37z"/></svg>
+          <div class="channel-btn-text">
+            <strong>Send via Telegram</strong>
+            <small>Instant chat with seller</small>
+          </div>
+        </button>
+
+        <!-- PHONE -->
+        <button type="button" class="channel-action-btn channel-btn-phone" id="btn-dispatch-phone">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          <div class="channel-btn-text">
+            <strong>Call Studio Line</strong>
+            <small>Direct voice inquiry</small>
+          </div>
+        </button>
+
+        <!-- EMAIL -->
+        <button type="button" class="channel-action-btn channel-btn-email" id="btn-dispatch-email">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          <div class="channel-btn-text">
+            <strong>Send via Email</strong>
+            <small>Official order inquiry</small>
+          </div>
+        </button>
+
+        <!-- SMS -->
+        <button type="button" class="channel-action-btn channel-btn-sms" id="btn-dispatch-sms">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <div class="channel-btn-text">
+            <strong>Send via SMS</strong>
+            <small>Direct mobile text</small>
+          </div>
+        </button>
+      </div>
+
+      <!-- Collapsible Formatted Message Preview & Copy -->
+      <details class="order-message-accordion">
+        <summary class="order-accordion-trigger">
+          <span>View Compiled Message Text</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </summary>
+        <div class="order-accordion-body">
+          <textarea id="order-message-preview" class="order-preview-textarea" readonly></textarea>
+        </div>
+      </details>
+
+      <div class="order-copy-row">
+        <button type="button" class="btn-copy-order" id="btn-copy-order-text">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          <span>Copy Full Order Text to Clipboard</span>
+        </button>
+      </div>
+
+      <div class="order-trust-footnote">
+        <span>Payment arranged on receipt (Telebirr, CBE, or Cash) • In-person studio collection or courier delivery</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Quick-Access Order List Pill (Always accessible when items are in cart) -->
+  <button type="button" 
+          class="floating-order-pill trigger-order-drawer" 
+          id="floating-order-btn" 
+          onclick="if(typeof openOrderDrawer==='function')openOrderDrawer();" 
+          aria-label="View current order list">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+    <span class="floating-order-text">Order List</span>
+    <span class="order-badge-count floating-order-badge" id="floating-order-count">0</span>
+  </button>
+
+  <!-- Global Toast Notification -->
+  <div class="global-toast" id="global-toast" role="status" aria-live="polite">
+    Notification message
+  </div>
+
+  <!-- =====================================================================
+       JAVASCRIPT MODULES
+       Strictly Vanilla JS, zero runtime frameworks
+       ===================================================================== -->
+  <script src="js/config.js"></script>
+  <script src="js/categories.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/order.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/filters.js"></script>
+  <script src="js/product-detail.js"></script>
+  <script src="js/contact.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
