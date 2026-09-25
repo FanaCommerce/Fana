@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FANA - Modern Online Product Catalog</title>
+  <title>TESSÉ - Modern Online Product Catalog</title>
   <meta name="description" content="A modern, minimalist static online shopping catalog and order inquiry platform for independent businesses, built with HTML5, CSS3, and Vanilla JavaScript.">
-  <meta property="og:title" content="FANA - Modern Online Product Catalog">
+  <meta property="og:title" content="TESSÉ - Modern Online Product Catalog">
   <meta property="og:description" content="A modern, minimalist static online shopping catalog and order inquiry platform for independent businesses, built with HTML5, CSS3, and Vanilla JavaScript.">
   <meta property="og:type" content="website">
 
@@ -41,11 +41,10 @@
         <!-- Desktop Navigation -->
         <nav class="desktop-nav" aria-label="Main Navigation">
           <a href="#home" class="nav-link is-active">Home</a>
-          <a href="#catalog" class="nav-link">Shop</a>
-          <a href="#categories-section" class="nav-link">Categories</a>
-          <a href="#new-arrivals" class="nav-link">New Arrivals</a>
+          <a href="#services" class="nav-link">Services</a>
+          <a href="#categories-section" class="nav-link">Products</a>
           <a href="#about" class="nav-link">About</a>
-          <a href="#contact" class="nav-link">Contact</a>
+          <a href="#contact" class="nav-link">Contact Us</a>
         </nav>
 
         <!-- Header Actions -->
@@ -86,7 +85,7 @@
   <aside class="mobile-nav-drawer" id="mobile-nav-drawer" aria-label="Mobile Navigation Menu" aria-hidden="true">
     <div class="mobile-drawer-header">
       <div class="brand-logo-link">
-        <span class="brand-name brand-name-text">FAFA</span>
+        <span class="brand-name brand-name-text">FANA</span>
         <span class="brand-tagline brand-tagline-text">ATELIER &amp; GOODS</span>
       </div>
       <button type="button" class="drawer-close-btn" id="mobile-nav-close" aria-label="Close mobile menu">
@@ -96,11 +95,10 @@
 
     <nav class="mobile-nav-links">
       <a href="#home" class="mobile-nav-link">Home</a>
-      <a href="#catalog" class="mobile-nav-link">Shop</a>
-      <a href="#categories-section" class="mobile-nav-link">Categories</a>
-      <a href="#new-arrivals" class="mobile-nav-link">New Arrivals</a>
-      <a href="#about" class="mobile-nav-link">About</a>
-      <a href="#contact" class="mobile-nav-link">Contact</a>
+      <a href="#services" class="mobile-nav-link">Services</a>
+      <a href="#categories-section" class="mobile-nav-link">Products</a>
+      <a href="#about" class="mobile-nav-link">About FANA</a>
+      <a href="#contact" class="mobile-nav-link">Contact Us</a>
       <button type="button" class="mobile-nav-order-btn trigger-order-drawer" id="mobile-drawer-order-btn" onclick="if(typeof closeMobileNav==='function')closeMobileNav(); if(typeof openOrderDrawer==='function')openOrderDrawer();" aria-label="Open your order list">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
         <span>View Order List</span>
@@ -110,7 +108,7 @@
 
     <div class="mobile-drawer-footer">
       <p>Direct Inquiries &amp; Orders:</p>
-      <p><strong class="brand-name-text">FAFA</strong> Studio</p>
+      <p><strong class="brand-name-text">FANA</strong> Studio</p>
     </div>
   </aside>
 
@@ -122,18 +120,69 @@
     <section class="hero-section" id="home">
       <div class="container">
         <div class="hero-inner">
-          <span class="hero-kicker brand-store-name">FAFA</span>
+          <span class="hero-kicker brand-store-name">FANA</span>
           <h1 class="hero-title" id="hero-heading">Simple. Modern. Yours.</h1>
           <p class="hero-desc" id="hero-subheading">
             Discover carefully selected products made for everyday life. Thoughtfully crafted apparel, durable leather goods, and refined everyday objects.
           </p>
           <div class="hero-actions">
-            <a href="#catalog" class="btn-primary" id="hero-cta-btn">Shop Now</a>
-            <a href="#categories-section" class="btn-secondary" id="hero-secondary-cta-btn">Explore Categories</a>
+            <a href="#catalog" class="btn-primary" id="hero-cta-btn">🛍️ Shop Products</a>
+            <a href="#services" class="btn-secondary" id="hero-secondary-cta-btn">🛠️ Explore Services</a>
           </div>
         </div>
       </div>
     </section>
+
+
+<!-- =====================================================================
+         SERVICES CATALOG SECTION
+         ===================================================================== -->
+    <section class="section-block bg-surface" id="services">
+      <div class="container">
+        <div class="section-header">
+          <div>
+            <span class="section-eyebrow">CREATIVE &amp; COMMERCIAL SOLUTIONS</span>
+            <h2 class="section-title">Professional Services</h2>
+          </div>
+          <span class="catalog-results-count" id="services-results-summary">Showing all services</span>
+        </div>
+
+        <!-- Services Category Pills -->
+        <div class="category-filter-pills" id="services-filter-pills" role="tablist" aria-label="Service Categories">
+          <button type="button" class="cat-pill-btn is-active" data-service-cat="all" onclick="filterServicesByCategory('all', this)" role="tab" aria-selected="true">
+            <span class="cat-pill-name">All Services</span>
+            <span class="cat-pill-badge" id="service-pill-count-all">6</span>
+          </button>
+          <button type="button" class="cat-pill-btn" data-service-cat="personal-ad" onclick="filterServicesByCategory('personal-ad', this)" role="tab" aria-selected="false">
+            <span class="cat-pill-name">📢 Personal Advertisement</span>
+            <span class="cat-pill-badge" id="service-pill-count-personal-ad">2</span>
+          </button>
+          <button type="button" class="cat-pill-btn" data-service-cat="graphic-design" onclick="filterServicesByCategory('graphic-design', this)" role="tab" aria-selected="false">
+            <span class="cat-pill-name">🎨 Graphic Design</span>
+            <span class="cat-pill-badge" id="service-pill-count-graphic-design">2</span>
+          </button>
+          <button type="button" class="cat-pill-btn" data-service-cat="digital-commercial" onclick="filterServicesByCategory('digital-commercial', this)" role="tab" aria-selected="false">
+            <span class="cat-pill-name">💻 Digital Commercial Services</span>
+            <span class="cat-pill-badge" id="service-pill-count-digital-commercial">2</span>
+          </button>
+        </div>
+
+        <!-- Services Grid -->
+        <div class="services-grid" id="services-grid">
+          <!-- Dynamically populated by app.js -->
+        </div>
+
+        <!-- Services Pricing Transparency Note -->
+        <div class="services-pricing-notice">
+          <div class="services-notice-icon">💡</div>
+          <div class="services-notice-text">
+            <strong>Transparent &amp; Flexible Rates:</strong>
+            <span>Displayed prices are representative demo baselines. Every project is scoped with custom deliverables, turnaround times, and direct consultation with our atelier.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
 
     <!-- Categories Overview -->
     <section class="section-block bg-surface" id="categories-section">
@@ -167,6 +216,9 @@
       </div>
     </section>
 
+
+
+
     <!-- New Arrivals Section -->
     <section class="section-block bg-surface" id="new-arrivals">
       <div class="container">
@@ -181,7 +233,8 @@
           <!-- Dynamically populated by products-ui.js -->
         </div>
       </div>
-    </section>
+    </section> 
+ 
 
     <!-- Complete Product Catalog & Multi-Faceted Filters -->
     <section class="catalog-section" id="catalog">
@@ -283,6 +336,9 @@
       </div>
     </section>
 
+    
+    
+
     <!-- Popular Items Section -->
     <section class="section-block bg-surface" id="popular-section">
       <div class="container">
@@ -307,7 +363,7 @@
             <span class="hero-kicker" style="color: #bbb;">OUR PHILOSOPHY</span>
             <h2>Small-Batch Quality. Direct Relationship.</h2>
             <p>
-              We operate without commercial intermediaries. Every garment, accessory, and home object in our catalog is selected or produced in limited small batches. When you purchase from <strong class="brand-name-text">FAFA</strong>, you communicate directly with the maker.
+              We operate without commercial intermediaries. Every garment, accessory, and home object in our catalog is selected or produced in limited small batches. When you purchase from <strong class="brand-name-text">FANA</strong>, you communicate directly with the maker.
             </p>
             <a href="#contact" class="btn-secondary">Speak With Us Directly</a>
           </div>
@@ -356,7 +412,7 @@
           </div>
           <div class="about-body-text">
             <p>
-              Founded on the belief that everyday tools and garments should outlast seasonal trends, <strong class="brand-name-text">FAFA</strong> creates enduring products for deliberate living.
+              Founded on the belief that everyday tools and garments should outlast seasonal trends, <strong class="brand-name-text">FANA</strong> creates enduring products for deliberate living.
             </p>
             <p>
               Rather than maintaining bloated automated warehouses, we keep a curated, high-integrity product catalog. Every inquiry is personally reviewed, packaged with care, and dispatched with pride.
@@ -459,8 +515,8 @@
           <h4>Contact &amp; Studio</h4>
           <ul class="footer-links">
             <li><span style="color: #777;">Ordering:</span> Direct via Telegram / Phone / Email</li>
-            <li><span style="color: #777;">Physical Shop:</span>Comming Soon</li>
-            <li><span style="color: #777;">Location:</span> Comming Soon</li>
+            <li><span style="color: #777;">Physical Shop:</span> Studio open Mon - Sat</li>
+            <li><span style="color: #777;">Location:</span> Central Design District</li>
             <li><a href="#contact" style="text-decoration: underline;">View Full Studio Details &rarr;</a></li>
           </ul>
         </div>
@@ -468,10 +524,10 @@
 
       <div class="footer-bottom-row">
         <div>
-          &copy; <span id="current-year">2026</span> <span class="brand-name-text">FANA</span> Studio. All rights reserved.
+          &copy; <span id="current-year">2026</span> <span class="brand-name-text">FANA</span> Atelier. All rights reserved. Built with pure HTML5, CSS3, &amp; Vanilla JavaScript.
         </div>
         <div>
-          Independent Commerce &bull; Zero external database dependencies
+          Independent Artisan Commerce &bull; Zero external database dependencies
         </div>
       </div>
     </div>
@@ -661,6 +717,7 @@
   <script src="js/config.js"></script>
   <script src="js/categories.js"></script>
   <script src="js/products.js"></script>
+  <script src="js/services.js"></script>
   <script src="js/order.js"></script>
   <script src="js/search.js"></script>
   <script src="js/filters.js"></script>
