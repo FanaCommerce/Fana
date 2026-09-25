@@ -24,6 +24,7 @@ function initApp() {
   renderCategoriesOverview();
   renderFeaturedSection();
   renderNewArrivalsSection();
+  renderServicesSection();
   
   if (typeof initFilterControls === "function") {
     initFilterControls();
@@ -376,7 +377,14 @@ function handleUrlHashRouting() {
     const pId = hash.replace("#product-", "").trim();
     if (pId) {
       setTimeout(() => {
-        openProductDetailModal(pId);
+        if (typeof openProductDetailModal === "function") openProductDetailModal(pId);
+      }, 100);
+    }
+  } else if (hash.startsWith("#service-")) {
+    const sId = hash.replace("#service-", "").trim();
+    if (sId) {
+      setTimeout(() => {
+        if (typeof openServiceDetailModal === "function") openServiceDetailModal(sId);
       }, 100);
     }
   }
@@ -386,10 +394,15 @@ function handleUrlHashRouting() {
     if (newHash.startsWith("#product-")) {
       const pId = newHash.replace("#product-", "").trim();
       if (pId && (!activeDetailProduct || activeDetailProduct.id !== pId)) {
-        openProductDetailModal(pId);
+        if (typeof openProductDetailModal === "function") openProductDetailModal(pId);
       }
-    } else if (activeDetailProduct) {
-      closeProductDetailModal();
+    } else if (newHash.startsWith("#service-")) {
+      const sId = newHash.replace("#service-", "").trim();
+      if (sId && (!activeDetailService || activeDetailService.id !== sId)) {
+        if (typeof openServiceDetailModal === "function") openServiceDetailModal(sId);
+      }
+    } else if (activeDetailProduct || activeDetailService) {
+      if (typeof closeProductDetailModal === "function") closeProductDetailModal();
     }
   });
 }
@@ -565,3 +578,197 @@ function bindGlobalEventListeners() {
     }
   });
 }
+
+
+/**
+ * =====================================================================
+ * SERVICES SECTION LOGIC & CARD RENDERING
+ * =====================================================================
+ */
+
+let currentActiveServiceCategory = "all";
+
+/**
+ * Filter services by category and refresh UI
+ * @param {string} catId 
+ * @param {HTMLElement} btnEl 
+ */
+function filterServicesByCategory(catId, btnEl) {
+  currentActiveServiceCategory = catId || "all";
+
+  // Update button pill states
+  const pills = document.querySelectorAll("#services-filter-pills .cat-pill-btn");
+  pills.forEach(pill => {
+    pill.classList.remove("is-active");
+    pill.setAttribute("aria-selected", "false");
+  });
+
+  if (btnEl) {
+    btnEl.classList.add("is-active");
+    btnEl.setAttribute("aria-selected", "true");
+  } else {
+    const target = document.querySelector(`#services-filter-pills [data-service-cat="${catId}"]`);
+    if (target) {
+      target.classList.add("is-active");
+      target.setAttribute("aria-selected", "true");
+    }
+  }
+
+  renderServicesSection(currentActiveServiceCategory);
+}
+window.filterServicesByCategory = filterServicesByCategory;
+
+/**
+ * Render the services grid and counter summaries
+ * @param {string} [categoryFilter="all"]
+ */
+function renderServicesSection(categoryFilter = "all") {
+  const container = document.getElementById("services-grid");
+  if (!container) return;
+
+  if (typeof getAllServices !== "function") {
+    return;
+  }
+
+  const allServices = getAllServices();
+  const filtered = (typeof getServicesByCategory === "function") 
+    ? getServicesByCategory(categoryFilter) 
+    : allServices;
+
+  // Update summary counter
+  const summaryEl = document.getElementById("services-results-summary");
+  if (summaryEl) {
+    if (categoryFilter === "all") {
+      summaryEl.textContent = `Showing all ${allServices.length} creative & commercial services`;
+    } else {
+      summaryEl.textContent = `Showing ${filtered.length} of ${allServices.length} services`;
+    }
+  }
+
+  // Update category pill badges
+  const allBadge = document.getElementById("service-pill-count-all");
+  if (allBadge) allBadge.textContent = allServices.length;
+
+  const personalAdBadge = document.getElementById("service-pill-count-personal-ad");
+  if (personalAdBadge) {
+    personalAdBadge.textContent = allServices.filter(s => s.categoryId === "personal-ad").length;
+  }
+
+  const graphicDesignBadge = document.getElementById("service-pill-count-graphic-design");
+  if (graphicDesignBadge) {
+    graphicDesignBadge.textContent = allServices.filter(s => s.categoryId === "graphic-design").length;
+  }
+
+  const digitalCommercialBadge = document.getElementById("service-pill-count-digital-commercial");
+  if (digitalCommercialBadge) {
+    digitalCommercialBadge.textContent = allServices.filter(s => s.categoryId === "digital-commercial").length;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-results-state" style="grid-column: 1 / -1; text-align: center; padding: 48px 16px;">
+        <p style="color: #71717a; font-size: 1.1rem; margin-bottom: 16px;">No services currently listed in this category.</p>
+        <button type="button" class="btn-secondary" onclick="filterServicesByCategory('all')">View All Services</button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(service => createServiceCardHtml(service)).join("");
+}
+window.renderServicesSection = renderServicesSection;
+
+/**
+ * Generate HTML string for a single Service Card
+ * @param {object} service 
+ * @returns {string}
+ */
+function createServiceCardHtml(service) {
+  if (!service) return "";
+
+  const thumb = (service.images && service.images[0]) || (typeof generateServicePlaceholder === 'function' ? generateServicePlaceholder(service, 0) : '');
+  const secondThumb = (service.images && service.images.length > 1) ? service.images[1] : null;
+
+  // Deliverables preview (up to 3 items)
+  const previewDeliverables = (service.deliverables || []).slice(0, 3).map(d => `
+    <li class="service-preview-item">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span>${escapeHtml(d)}</span>
+    </li>
+  `).join("");
+
+  return `
+    <article class="product-card service-card" data-service-id="${escapeHtml(service.id)}">
+      <!-- Media with zoom click -->
+      <div class="product-card-media" onclick="openServiceDetailModal('${escapeHtml(service.id)}')">
+        <img class="product-card-img card-img-primary" 
+             src="${thumb}" 
+             alt="${escapeHtml(service.name)}" 
+             loading="lazy" 
+             referrerpolicy="no-referrer"
+             onerror="if(typeof generateServicePlaceholder==='function'){this.onerror=null;this.src=generateServicePlaceholder(getServiceById('${service.id}'), 0);}">
+        
+        ${secondThumb ? `
+          <img class="card-img-hover" 
+               src="${secondThumb}" 
+               alt="${escapeHtml(service.name)}" 
+               loading="lazy" 
+               referrerpolicy="no-referrer">
+        ` : ""}
+
+        <div class="card-badges">
+          <span class="badge-stock service-demo-badge">Demo Price</span>
+          ${service.badge ? `<span class="badge-discount service-highlight-badge">${escapeHtml(service.badge)}</span>` : ""}
+        </div>
+
+        <div class="service-code-overlay">
+          <span>CODE: ${escapeHtml(service.id)}</span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="product-card-content service-card-content">
+        <div class="card-meta-top">
+          <span class="product-card-category">${escapeHtml(service.category)}</span>
+          <span class="service-turnaround-pill">${escapeHtml((service.specifications && service.specifications.Turnaround) || "Express")}</span>
+        </div>
+
+        <h3 class="product-card-title service-card-title" onclick="openServiceDetailModal('${escapeHtml(service.id)}')">
+          ${escapeHtml(service.name)}
+        </h3>
+
+        <p class="service-card-desc">${escapeHtml(service.shortDescription)}</p>
+
+        <!-- Key Deliverables list preview -->
+        <ul class="service-card-deliverables">
+          ${previewDeliverables}
+        </ul>
+
+        <!-- Price & Action block -->
+        <div class="service-card-footer">
+          <div class="service-card-price-info">
+            <span class="service-price-starting">Starting Baseline</span>
+            <div class="service-card-price-row">
+              <span class="product-card-price">From ${formatPrice(service.price)}</span>
+            </div>
+            <span class="service-price-subnote">Demo quote • Finalizes upon scope</span>
+          </div>
+
+          <div class="service-card-actions">
+            <button type="button" 
+                    class="btn-service-inquire" 
+                    onclick="openServiceInquiryModal('${escapeHtml(service.id)}')">
+              <span>Request</span>
+            </button>
+            <button type="button" 
+                    class="btn-service-view" 
+                    onclick="openServiceDetailModal('${escapeHtml(service.id)}')">
+              <span>Explore</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+window.createServiceCardHtml = createServiceCardHtml;
