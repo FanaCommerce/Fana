@@ -46,9 +46,9 @@ const CONTACT_INFO = {
     name: "FANA Commerce",
     address: "Everywhere",
     openingHours: "24 hours",
-    landmark: "Comming Soon",
-    mapUrl: "Comming Soon",
-    pickupNotice: "Comming  Soon"
+    landmark: "Coming Soon",
+    mapUrl: "#",
+    pickupNotice: "Coming Soon"
   },
   
   // Social Links
