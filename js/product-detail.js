@@ -14,6 +14,7 @@
  */
 
 let activeDetailProduct = null;
+let activeDetailService = null;
 let currentGalleryImageIndex = 0;
 let currentDetailQuantity = 1;
 let currentDetailSelectedColor = null;
@@ -79,13 +80,14 @@ function closeProductDetailModal() {
   }
 
   activeDetailProduct = null;
+  activeDetailService = null;
   // Clear hash safely
   try {
-    if (window.location.hash.startsWith("#product-")) {
+    if (window.location.hash.startsWith("#product-") || window.location.hash.startsWith("#service-")) {
       history.replaceState(null, "", window.location.pathname + window.location.search);
     }
   } catch (err) {
-    if (window.location.hash.startsWith("#product-")) {
+    if (window.location.hash.startsWith("#product-") || window.location.hash.startsWith("#service-")) {
       window.location.hash = "";
     }
   }
@@ -505,10 +507,15 @@ function renderProductDetailContent(product) {
  * @param {number} index 
  */
 function setGalleryActiveImage(index) {
-  if (!activeDetailProduct) return;
-  const images = (Array.isArray(activeDetailProduct.images) && activeDetailProduct.images.length > 0)
-    ? activeDetailProduct.images
-    : [generateProductPlaceholder(activeDetailProduct, 0)];
+  const activeItem = activeDetailProduct || activeDetailService;
+  if (!activeItem) return;
+  const isService = !!activeDetailService;
+
+  const images = (Array.isArray(activeItem.images) && activeItem.images.length > 0)
+    ? activeItem.images
+    : [isService 
+        ? (typeof generateServicePlaceholder === 'function' ? generateServicePlaceholder(activeItem, 0) : '') 
+        : generateProductPlaceholder(activeItem, 0)];
 
   if (index < 0) index = images.length - 1;
   if (index >= images.length) index = 0;
@@ -521,7 +528,9 @@ function setGalleryActiveImage(index) {
     mainImg.style.transformOrigin = "center center";
     mainImg.onerror = () => {
       mainImg.onerror = null;
-      mainImg.src = generateProductPlaceholder(activeDetailProduct, currentGalleryImageIndex);
+      mainImg.src = isService
+        ? (typeof generateServicePlaceholder === 'function' ? generateServicePlaceholder(activeItem, currentGalleryImageIndex) : '')
+        : generateProductPlaceholder(activeItem, currentGalleryImageIndex);
     };
   }
 
@@ -704,3 +713,413 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+
+/**
+ * Open the Service Detail Modal for a specific service ID
+ * Reuses the existing interactive gallery, thumbnails, and crosshair zoom.
+ * @param {string} serviceId 
+ */
+function openServiceDetailModal(serviceId) {
+  if (typeof getServiceById !== "function") {
+    showToastNotification("Service catalog is initializing.");
+    return;
+  }
+  const service = getServiceById(serviceId);
+  if (!service) {
+    showToastNotification("Service could not be found.");
+    return;
+  }
+
+  activeDetailProduct = null;
+  activeDetailService = service;
+  currentGalleryImageIndex = 0;
+  currentDetailQuantity = 1;
+  currentDetailSelectedColor = null;
+  currentDetailSelectedSize = null;
+
+  renderServiceDetailContent(service);
+
+  const modal = document.getElementById("product-detail-modal");
+  if (modal) {
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("modal-open");
+  }
+
+  const closeBtn = document.getElementById("product-detail-close") || document.getElementById("btn-close-product-detail");
+  if (closeBtn) {
+    closeBtn.onclick = closeProductDetailModal;
+  }
+
+  setupGalleryZoom();
+
+  try {
+    history.replaceState(null, "", `#service-${service.id}`);
+  } catch (e) {}
+}
+window.openServiceDetailModal = openServiceDetailModal;
+
+/**
+ * Render all service details, portfolio images, deliverables, and specs into modal
+ * @param {object} service 
+ */
+function renderServiceDetailContent(service) {
+  const container = document.getElementById("product-detail-modal-body") || document.getElementById("product-detail-content");
+  if (!container) return;
+
+  const images = (Array.isArray(service.images) && service.images.length > 0)
+    ? service.images
+    : [typeof generateServicePlaceholder === 'function' ? generateServicePlaceholder(service, 0) : ''];
+
+  // Gallery Thumbnails HTML
+  let thumbnailsHtml = "";
+  if (images.length > 1) {
+    const thumbs = images.map((imgSrc, idx) => {
+      const isActive = idx === currentGalleryImageIndex;
+      return `
+        <button type="button" 
+                class="gallery-thumb-btn ${isActive ? 'is-active' : ''}" 
+                onclick="setGalleryActiveImage(${idx})"
+                aria-label="View portfolio sample ${idx + 1}">
+          <img src="${imgSrc}" 
+               alt="Portfolio sample ${idx + 1}" 
+               loading="lazy" 
+               referrerpolicy="no-referrer" 
+               onerror="if(typeof generateServicePlaceholder==='function'){this.onerror=null;this.src=generateServicePlaceholder(activeDetailService,${idx});}">
+        </button>
+      `;
+    }).join("");
+
+    thumbnailsHtml = `<div class="gallery-thumbnails">${thumbs}</div>`;
+  }
+
+  // Deliverables Checklist HTML
+  let deliverablesHtml = "";
+  if (Array.isArray(service.deliverables) && service.deliverables.length > 0) {
+    deliverablesHtml = `
+      <div class="service-detail-deliverables">
+        <h3 class="detail-section-subtitle">Scope &amp; Deliverables</h3>
+        <div class="deliverables-checklist">
+          ${service.deliverables.map(item => `
+            <div class="deliverable-item">
+              <span class="deliverable-check-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              </span>
+              <span class="deliverable-text">${escapeHtml(item)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  // Specifications Grid HTML
+  let specsHtml = "";
+  if (service.specifications && Object.keys(service.specifications).length > 0) {
+    const specRows = Object.entries(service.specifications).map(([k, v]) => `
+      <div class="specs-row">
+        <span class="specs-term">${escapeHtml(k)}</span>
+        <span class="specs-desc">${escapeHtml(v)}</span>
+      </div>
+    `).join("");
+
+    specsHtml = `
+      <div class="detail-specs-section">
+        <h3 class="detail-section-title">Service Details &amp; Workflow</h3>
+        <div class="specs-grid">
+          ${specRows}
+        </div>
+      </div>
+    `;
+  }
+
+  // Related / Other Services
+  let otherServicesHtml = "";
+  if (typeof getAllServices === 'function') {
+    const others = getAllServices().filter(s => s.id !== service.id).slice(0, 3);
+    if (others.length > 0) {
+      const cards = others.map(s => {
+        const thumb = (s.images && s.images[0]) || (typeof generateServicePlaceholder === 'function' ? generateServicePlaceholder(s, 0) : '');
+        return `
+          <div class="related-card" onclick="openServiceDetailModal('${s.id}')">
+            <div class="related-card-img">
+              <img src="${thumb}" alt="${escapeHtml(s.name)}" referrerpolicy="no-referrer">
+            </div>
+            <div class="related-card-info">
+              <span class="related-card-cat">${escapeHtml(s.category)}</span>
+              <h4 class="related-card-title">${escapeHtml(s.name)}</h4>
+              <span class="related-card-price">From ${formatPrice(s.price)}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      otherServicesHtml = `
+        <div class="detail-related-section">
+          <h3 class="detail-section-title">Other Creative Services</h3>
+          <div class="related-products-grid">
+            ${cards}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  container.innerHTML = `
+    <div class="product-detail-layout detail-layout-grid service-detail-view">
+      <!-- LEFT: PORTFOLIO GALLERY WITH CROSSHAIR ZOOM -->
+      <div class="detail-gallery-column">
+        <div class="gallery-stage" id="gallery-zoom-container">
+          <img id="detail-main-image" 
+               class="gallery-main-img" 
+               src="${images[0]}" 
+               alt="${escapeHtml(service.name)}" 
+               referrerpolicy="no-referrer" 
+               onerror="if(typeof generateServicePlaceholder==='function'){this.onerror=null;this.src=generateServicePlaceholder(activeDetailService, 0);}">
+
+          ${images.length > 1 ? `
+            <button type="button" class="gallery-nav-btn gallery-prev-btn" onclick="stepGalleryImage(-1)" aria-label="Previous sample">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button type="button" class="gallery-nav-btn gallery-next-btn" onclick="stepGalleryImage(1)" aria-label="Next sample">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          ` : ""}
+
+          <div class="gallery-zoom-badge" id="gallery-zoom-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+            <span>Hover crosshair to zoom portfolio</span>
+          </div>
+
+          <div class="gallery-counter" id="gallery-counter">1 / ${images.length}</div>
+        </div>
+
+        ${thumbnailsHtml}
+
+        <!-- Service Assurance Highlights -->
+        <div class="detail-perks-card">
+          <div class="perk-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Dedicated Creative Direction &amp; Fast Revisions</span>
+          </div>
+          <div class="perk-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>300 DPI Print &amp; Vector Ready Deliverables</span>
+          </div>
+          <div class="perk-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            <span>Direct Telegram &amp; Phone Collaboration</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: SERVICE INFORMATION & INQUIRY ACTIONS -->
+      <div class="detail-info-column">
+        <div class="detail-header-meta">
+          <span class="detail-category-crumb">${escapeHtml((service.category || "").toUpperCase())}</span>
+          <span class="detail-code-badge">CODE: ${escapeHtml(service.id)}</span>
+          ${service.badge ? `<span class="detail-brand-badge">${escapeHtml(service.badge)}</span>` : ""}
+        </div>
+
+        <h1 class="detail-product-title">${escapeHtml(service.name)}</h1>
+
+        <!-- Demo Price Card with explanatory note -->
+        <div class="detail-price-card service-price-card">
+          <div class="service-price-top">
+            <span class="service-price-label">Baseline Estimate</span>
+            <span class="service-demo-badge">DEMO PRICE</span>
+          </div>
+          <div class="detail-price-row">
+            <span class="detail-current-price">From ${formatPrice(service.price)}</span>
+          </div>
+          <div class="service-pricing-clarification">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <span>${escapeHtml(service.pricingNote || "Demo price • Final quote tailored to your exact deliverables and timeline.")}</span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="detail-short-desc">
+          <p>${escapeHtml(service.description)}</p>
+        </div>
+
+        <!-- Scope & Deliverables Checklist -->
+        ${deliverablesHtml}
+
+        <hr class="detail-divider">
+
+        <!-- Inquiry Action Buttons -->
+        <div class="detail-order-builder">
+          <div class="detail-action-buttons">
+            <button type="button" 
+                    class="btn-detail-order-primary" 
+                    onclick="openServiceInquiryModal('${service.id}')">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+              <span>Request Service / Get a Quote</span>
+            </button>
+
+            <a href="https://t.me/${CONTACT_INFO.telegram}?text=${encodeURIComponent('Hello FANA, I would like to inquire about your ' + service.name + ' (' + service.id + ')')}" 
+               target="_blank" 
+               rel="noopener" 
+               class="btn-detail-order-secondary" 
+               style="text-decoration:none; text-align:center; justify-content:center;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              <span>Chat Directly on Telegram</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Direct Contact Quick-Links Banner -->
+        <div class="detail-contact-notice">
+          <div class="contact-notice-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+          </div>
+          <div class="contact-notice-text">
+            <span>Direct Studio Line: </span>
+            <a href="tel:${CONTACT_INFO.phone}">${CONTACT_INFO.phoneDisplay}</a>
+            <span class="sep">•</span>
+            <a href="https://t.me/${CONTACT_INFO.telegram}" target="_blank" rel="noopener">Telegram (${CONTACT_INFO.telegramDisplay})</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOWER SECTIONS: SPECIFICATIONS & OTHER SERVICES -->
+    <div class="detail-extended-info">
+      ${specsHtml}
+      ${otherServicesHtml}
+    </div>
+  `;
+
+  setupGalleryZoom();
+}
+window.renderServiceDetailContent = renderServiceDetailContent;
+
+/**
+ * Open Service Inquiry Modal
+ * Reuses the existing order dispatch modal styled specifically for services.
+ * Prefills service name, code, deliverables, demo price, and customer notes.
+ * @param {string} serviceId 
+ */
+function openServiceInquiryModal(serviceId) {
+  if (typeof getServiceById !== "function") return;
+  const service = getServiceById(serviceId);
+  if (!service) {
+    showToastNotification("Service could not be found.");
+    return;
+  }
+
+  // Close service detail modal if open
+  closeProductDetailModal();
+
+  const modal = document.getElementById("order-action-modal") || document.getElementById("order-dispatch-modal");
+  if (!modal) return;
+
+  const modalContainer = modal.querySelector(".order-modal-container");
+  if (modalContainer) modalContainer.classList.add("inquiry-mode");
+
+  const modalBadge = modal.querySelector(".order-modal-badge span:last-child");
+  const modalTitle = document.getElementById("order-modal-title");
+  const modalDescription = modal.querySelector(".order-modal-desc");
+  const copyButtonText = document.querySelector("#btn-copy-order-text span");
+
+  if (modalBadge) modalBadge.textContent = "SERVICE INQUIRY & PROPOSAL";
+  if (modalTitle) modalTitle.textContent = `Request: ${service.name}`;
+  if (modalDescription) {
+    modalDescription.textContent = "Connect directly with our atelier to discuss your project scope, turnaround timeline, and receive a tailored quote.";
+  }
+  if (copyButtonText) copyButtonText.textContent = "Copy Service Inquiry to Clipboard";
+
+  // Render service summary inside modal items list
+  const container = document.getElementById("order-modal-items-list");
+  const countEl = document.getElementById("order-modal-items-count");
+  const totalEl = document.getElementById("order-modal-total-display");
+
+  const thumb = (service.images && service.images[0]) || (typeof generateServicePlaceholder === 'function' ? generateServicePlaceholder(service, 0) : '');
+
+  if (container) {
+    container.innerHTML = `
+      <div class="order-summary-row service-inquiry-summary-row">
+        <div class="summary-thumb">
+          <img src="${thumb}" alt="${escapeHtml(service.name)}" referrerpolicy="no-referrer">
+        </div>
+        <div class="summary-info">
+          <div class="summary-row-top">
+            <strong class="summary-name">${escapeHtml(service.name)}</strong>
+            <span class="summary-line-price">Demo: ${formatPrice(service.price)}</span>
+          </div>
+          <div class="summary-meta-line">
+            <span class="summary-code">CODE: ${escapeHtml(service.id)}</span>
+            <span class="summary-pill">${escapeHtml(service.category)}</span>
+            <span class="summary-pill demo-pill">Demo Baseline</span>
+          </div>
+          <div class="service-summary-deliverables-note" style="margin-top: 8px; font-size: 0.8rem; color: #71717a;">
+            Includes: ${(service.deliverables || []).slice(0, 3).join(" • ")}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (countEl) countEl.textContent = "1 Service Inquiry";
+  if (totalEl) totalEl.textContent = `Est. ${formatPrice(service.price)}`;
+
+  // Dynamic message generator
+  const nameInput = document.getElementById("order-customer-name");
+  const locInput = document.getElementById("order-customer-location");
+
+  const refreshServiceMessage = () => {
+    const custName = (nameInput ? nameInput.value : "").trim();
+    const custNotes = (locInput ? locInput.value : "").trim();
+
+    const deliverableList = (service.deliverables || []).map(d => `  - ${d}`).join("\n");
+
+    const lines = [
+      `Hello, I am interested in requesting the following service from ${STORE_CONFIG.storeName}:`,
+      "",
+      `Service: ${service.name}`,
+      `Service Code: ${service.id}`,
+      `Category: ${service.category}`,
+      `Demo Baseline Price: ${formatPrice(service.price)} (Final quote tailored to project scope)`,
+      "",
+      "Key Deliverables:",
+      deliverableList,
+      ""
+    ];
+
+    if (custName) {
+      lines.push(`Client Name: ${custName}`);
+    }
+    if (custNotes) {
+      lines.push(`Project Scope / Timeline / Delivery: ${custNotes}`);
+    }
+    lines.push("");
+    lines.push("Please let me know your availability, timeline, and how to proceed.");
+    lines.push("Thank you!");
+
+    const formatted = lines.join("\n");
+    const msgDisplay = document.getElementById("dispatch-message-preview") || document.getElementById("order-message-preview");
+    if (msgDisplay) {
+      msgDisplay.value = formatted;
+    }
+
+    if (typeof bindDispatchButtons === "function") {
+      bindDispatchButtons(formatted);
+    }
+  };
+
+  if (nameInput) {
+    nameInput.oninput = refreshServiceMessage;
+  }
+  if (locInput) {
+    locInput.oninput = refreshServiceMessage;
+  }
+
+  refreshServiceMessage();
+
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+}
+window.openServiceInquiryModal = openServiceInquiryModal;
